@@ -1,47 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './routes/PrivateRoute';
+import RoleRoute from './routes/RoleRoute';
+import DashboardLayout from './components/Layout/DashboardLayout';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import PerformanceHistory from './pages/PerformanceHistory';
+import Reports from './pages/Reports';
+import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
+import { ROLES } from './utils/constants';
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
+  /** Application entry: router and route definitions for dashboard app. */
   return (
     <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={(
+                <PrivateRoute>
+                  <DashboardLayout />
+                </PrivateRoute>
+              )}
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="history" element={<PerformanceHistory />} />
+              <Route path="reports" element={<Reports />} />
+              <Route
+                path="admin"
+                element={
+                  <RoleRoute roles={[ROLES.ADMIN]}>
+                    <Admin />
+                  </RoleRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }
